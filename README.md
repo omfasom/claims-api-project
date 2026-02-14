@@ -53,31 +53,61 @@ claims-api-project/
 
 - Node.js 20+
 - npm
-- Playwright
+
+### Installation
 
 ```bash
-npm install
-npx playwright install
+# Clone the repo
+git clone https://github.com/omfasom/claims-api-project.git
+cd claims-api-project
+
+# Install dependencies
+npm ci
+
+# Install Playwright browsers (one-time setup)
+npx playwright install chromium --with-deps
 ```
 
-### Run Mock Server
+### Run Tests Locally
+
+The test suite automatically starts the mock server, waits for it to be ready, runs tests, and cleans up:
+
 ```bash
-npx ts-node mock-server/server.ts
+npm test
 ```
 
-### Run Tests in Mock Server
+**Alternative ways to run tests:**
+
 ```bash
-API_BASE_URL=http://localhost:3000 npx playwright test
+# Run in debug mode (step through tests in Playwright Inspector)
+npm run test:debug
+
+# Run with visible browser window
+npm run test:headed
+
+# Run mock server manually (for development)
+npm run mock
 ```
 
-### Run Tests in Staging
+### View Test Results
+
+After tests complete, view the HTML report:
+
 ```bash
-API_BASE_URL=https://api.staging.example.com/v1 npx playwright test
+npx playwright show-report
 ```
 
-### Run Tests in Production
+### Run Tests Against Different Environments
+
 ```bash
-API_BASE_URL=https://api.example.com/v1 npx playwright test
+# Against local mock server (default)
+npm test
+
+# Against staging
+API_BASE_URL=https://api.staging.example.com npx playwright test
+
+# Against production
+API_BASE_URL=https://api.example.com npx playwright test
 ```
 
 
