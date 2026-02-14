@@ -1,0 +1,687 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Claims API",
+    "description": "API for managing insurance claims (Schäden). Supports creating, retrieving, updating, and filtering claims across their full lifecycle from OPEN through to PAID.\n",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Claims Team"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com/v1",
+      "description": "Production"
+    },
+    { "url": "http://localhost:3000", "description": "Local Mock Server" },
+    {
+      "url": "https://api.staging.example.com/v1",
+      "description": "Staging"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Claims",
+      "description": "Operations on insurance claims"
+    }
+  ],
+  "paths": {
+    "/claims": {
+      "post": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Create a new claim",
+        "description": "Submits a new insurance claim. The claim is created with status OPEN unless overridden. The server assigns a unique id and records createdAt / updatedAt timestamps automatically.\n",
+        "operationId": "createClaim",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateClaimRequest"
+              },
+              "examples": {
+                "fire_damage": {
+                  "summary": "Fire damage claim",
+                  "value": {
+                    "policyNumber": "POL-2024-00123",
+                    "claimantName": "Maria Müller",
+                    "damageDate": "2024-11-15",
+                    "lossDescription": "Kitchen fire caused significant smoke and structural damage."
+                  }
+                },
+                "car_theft": {
+                  "summary": "Car theft claim",
+                  "value": {
+                    "policyNumber": "POL-2023-88721",
+                    "claimantName": "Hans Schmidt",
+                    "damageDate": "2024-12-01",
+                    "lossDescription": "Vehicle stolen from parking garage overnight.",
+                    "status": "OPEN"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Claim successfully created",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created claim",
+                "schema": {
+                  "type": "string",
+                  "example": "/v1/claims/CLM-20241201-001"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Claim"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "List and filter claims",
+        "description": "Returns a paginated list of claims. Results can be filtered by status, policy number, claimant name, and date range. Results are ordered by createdAt descending by default.\n",
+        "operationId": "listClaims",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by claim status. Multiple values are OR-combined.",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/ClaimStatus"
+              }
+            },
+            "style": "form",
+            "explode": true,
+            "examples": {
+              "single": {
+                "value": [
+                  "OPEN"
+                ]
+              },
+              "multiple": {
+                "value": [
+                  "OPEN",
+                  "IN_REVIEW"
+                ]
+              }
+            }
+          },
+          {
+            "name": "policyNumber",
+            "in": "query",
+            "description": "Exact match on policy number",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "POL-2024-00123"
+            }
+          },
+          {
+            "name": "claimantName",
+            "in": "query",
+            "description": "Case-insensitive partial match on claimant name",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "example": "Müller"
+            }
+          },
+          {
+            "name": "damageDateFrom",
+            "in": "query",
+            "description": "Filter claims with a damageDate on or after this date (inclusive)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-01-01"
+            }
+          },
+          {
+            "name": "damageDateTo",
+            "in": "query",
+            "description": "Filter claims with a damageDate on or before this date (inclusive)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "example": "2024-12-31"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "1-based page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Field to sort by",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "damageDate",
+                "status"
+              ],
+              "default": "createdAt"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "in": "query",
+            "description": "Sort direction",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "desc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of claims",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClaimListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    },
+    "/claims/{id}": {
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "Unique claim identifier",
+          "required": true,
+          "schema": {
+            "type": "string",
+            "example": "CLM-20241201-001"
+          }
+        }
+      ],
+      "get": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Get a claim by ID",
+        "description": "Returns the full details of a single claim.",
+        "operationId": "getClaimById",
+        "responses": {
+          "200": {
+            "description": "Claim found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Claim"
+                },
+                "example": {
+                  "id": "CLM-20241201-001",
+                  "policyNumber": "POL-2024-00123",
+                  "claimantName": "Maria Müller",
+                  "damageDate": "2024-11-15",
+                  "lossDescription": "Kitchen fire caused significant smoke and structural damage.",
+                  "status": "IN_REVIEW",
+                  "payoutAmount": null,
+                  "payoutDate": null,
+                  "createdAt": "2024-12-01T09:00:00Z",
+                  "updatedAt": "2024-12-03T14:22:00Z"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Claims"
+        ],
+        "summary": "Update a claim's status (and optional payout information)",
+        "description": "Partially updates a claim. Primarily intended for advancing the claim through its lifecycle. Allowed status transitions are:\n``` OPEN → IN_REVIEW → APPROVED → PAID\n                 ↘ REJECTED\n```\nAny other transition (e.g. PAID → OPEN) will be rejected with 422. When setting status to PAID, a payoutAmount must be provided.\n",
+        "operationId": "patchClaim",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchClaimRequest"
+              },
+              "examples": {
+                "move_to_review": {
+                  "summary": "Move claim to IN_REVIEW",
+                  "value": {
+                    "status": "IN_REVIEW"
+                  }
+                },
+                "approve_with_payout": {
+                  "summary": "Approve claim",
+                  "value": {
+                    "status": "APPROVED",
+                    "payoutAmount": 4500.0
+                  }
+                },
+                "mark_paid": {
+                  "summary": "Mark claim as paid",
+                  "value": {
+                    "status": "PAID",
+                    "payoutAmount": 4500.0,
+                    "payoutDate": "2024-12-20"
+                  }
+                },
+                "reject": {
+                  "summary": "Reject claim",
+                  "value": {
+                    "status": "REJECTED"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Claim successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Claim"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "422": {
+            "$ref": "#/components/responses/UnprocessableEntity"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ClaimStatus": {
+        "type": "string",
+        "description": "Lifecycle status of a claim.\n| Value      | Meaning                                          | |------------|--------------------------------------------------| | OPEN       | Newly filed, awaiting triage                     | | IN_REVIEW  | Assigned to an adjuster and under investigation  | | APPROVED   | Claim accepted; payout amount determined         | | PAID       | Payment disbursed to claimant                    | | REJECTED   | Claim denied                                     |\n",
+        "enum": [
+          "OPEN",
+          "IN_REVIEW",
+          "APPROVED",
+          "PAID",
+          "REJECTED"
+        ],
+        "example": "OPEN"
+      },
+      "ClaimBase": {
+        "type": "object",
+        "description": "Fields common to create and response schemas",
+        "properties": {
+          "policyNumber": {
+            "type": "string",
+            "description": "Reference to the associated insurance policy",
+            "minLength": 1,
+            "maxLength": 50,
+            "example": "POL-2024-00123"
+          },
+          "claimantName": {
+            "type": "string",
+            "description": "Full name of the person filing the claim",
+            "minLength": 1,
+            "maxLength": 200,
+            "example": "Maria Müller"
+          },
+          "damageDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date on which the damage or loss event occurred (ISO 8601 date, must not be in the future)\n",
+            "example": "2024-11-15"
+          },
+          "lossDescription": {
+            "type": "string",
+            "description": "Human-readable description of the damage or loss",
+            "minLength": 10,
+            "maxLength": 5000,
+            "example": "Kitchen fire caused significant smoke and structural damage."
+          }
+        }
+      },
+      "CreateClaimRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClaimBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "policyNumber",
+              "claimantName",
+              "damageDate",
+              "lossDescription"
+            ],
+            "properties": {
+              "status": {
+                "$ref": "#/components/schemas/ClaimStatus",
+                "description": "Initial status. Defaults to OPEN if omitted. Only OPEN is accepted on creation.\n",
+                "default": "OPEN"
+              }
+            }
+          }
+        ]
+      },
+      "PatchClaimRequest": {
+        "type": "object",
+        "description": "Fields that can be updated via PATCH. At least one field is required. All fields are optional — only supplied fields are updated.\n",
+        "minProperties": 1,
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ClaimStatus",
+            "description": "New status value. Must satisfy the allowed transition rules.\n"
+          },
+          "payoutAmount": {
+            "type": "number",
+            "format": "double",
+            "description": "Approved payout amount in the policy currency (e.g. EUR). Required when status is APPROVED or PAID.\n",
+            "minimum": 0,
+            "example": 4500.0
+          },
+          "payoutDate": {
+            "type": "string",
+            "format": "date",
+            "description": "Date the payment was (or will be) disbursed. Required when status is PAID.\n",
+            "example": "2024-12-20"
+          }
+        }
+      },
+      "Claim": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ClaimBase"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "policyNumber",
+              "claimantName",
+              "damageDate",
+              "lossDescription",
+              "status",
+              "createdAt",
+              "updatedAt"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "description": "Server-assigned unique identifier for the claim",
+                "readOnly": true,
+                "example": "CLM-20241201-001"
+              },
+              "status": {
+                "$ref": "#/components/schemas/ClaimStatus"
+              },
+              "payoutAmount": {
+                "type": "number",
+                "format": "double",
+                "description": "Approved payout amount in the policy currency",
+                "nullable": true,
+                "example": 4500.0
+              },
+              "payoutDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Date the payment was disbursed",
+                "nullable": true,
+                "example": "2024-12-20"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp of claim creation (UTC)",
+                "readOnly": true,
+                "example": "2024-12-01T09:00:00Z"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time",
+                "description": "ISO 8601 timestamp of the last update (UTC)",
+                "readOnly": true,
+                "example": "2024-12-03T14:22:00Z"
+              }
+            }
+          }
+        ]
+      },
+      "PaginationMeta": {
+        "type": "object",
+        "required": [
+          "page",
+          "pageSize",
+          "totalItems",
+          "totalPages"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "Current page number (1-based)",
+            "example": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "description": "Number of items per page",
+            "example": 20
+          },
+          "totalItems": {
+            "type": "integer",
+            "description": "Total number of claims matching the filter",
+            "example": 57
+          },
+          "totalPages": {
+            "type": "integer",
+            "description": "Total number of pages",
+            "example": 3
+          }
+        }
+      },
+      "ClaimListResponse": {
+        "type": "object",
+        "required": [
+          "data",
+          "meta"
+        ],
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Claim"
+            }
+          },
+          "meta": {
+            "$ref": "#/components/schemas/PaginationMeta"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "properties": {
+          "code": {
+            "type": "string",
+            "description": "Machine-readable error code",
+            "example": "INVALID_STATUS_TRANSITION"
+          },
+          "message": {
+            "type": "string",
+            "description": "Human-readable description of the error",
+            "example": "Status cannot transition from PAID to OPEN."
+          },
+          "details": {
+            "type": "array",
+            "description": "Optional list of field-level validation errors",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        }
+      },
+      "FieldError": {
+        "type": "object",
+        "required": [
+          "field",
+          "message"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "JSON path to the offending field",
+            "example": "damageDate"
+          },
+          "message": {
+            "type": "string",
+            "description": "Description of the validation failure",
+            "example": "damageDate must not be in the future."
+          }
+        }
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "400 – The request was malformed or failed schema validation.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "code": "BAD_REQUEST",
+              "message": "Request body is missing required field 'policyNumber'.",
+              "details": [
+                {
+                  "field": "policyNumber",
+                  "message": "Field is required."
+                }
+              ]
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "404 – No claim with the given ID exists.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "code": "CLAIM_NOT_FOUND",
+              "message": "No claim found with id 'CLM-20241201-001'."
+            }
+          }
+        }
+      },
+      "UnprocessableEntity": {
+        "description": "422 – The request is syntactically valid but semantically incorrect (e.g. an illegal status transition or a missing payoutAmount for a PAID status).\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "code": "INVALID_STATUS_TRANSITION",
+              "message": "Cannot transition from PAID to OPEN."
+            }
+          }
+        }
+      },
+      "InternalServerError": {
+        "description": "500 – An unexpected server-side error occurred.\n",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            },
+            "example": {
+              "code": "INTERNAL_ERROR",
+              "message": "An unexpected error occurred. Please try again later."
+            }
+          }
+        }
+      }
+    }
+  }
+}
