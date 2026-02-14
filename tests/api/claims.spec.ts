@@ -3,14 +3,10 @@ import { test, expect, APIRequestContext } from "@playwright/test";
 import { ApiClient } from "../utils/apiClient";
 
 test.describe("Claims API – Happy Path", () => {
-    let client: ApiClient;
     let claimId: string;
 
-    test.beforeAll(async ({ request }) => {
-        client = new ApiClient(request);
-    });
-
-    test("Create claim", async () => {
+    test("Create claim", async ({ request }) => {
+        const client = new ApiClient(request);
         const claim: any  = await client.post("/claims", {
             policyNumber: "POL-2024-00123",
             claimantName: "Maria Müller",
@@ -23,13 +19,15 @@ test.describe("Claims API – Happy Path", () => {
         claimId = claim.id;
     });
 
-    test("Retrieve claim", async () => {
+    test("Retrieve claim", async ({ request }) => {
+        const client = new ApiClient(request);
         const claim: any  = await client.get(`/claims/${claimId}`);
         expect(claim.id).toBe(claimId);
         expect(claim.policyNumber).toBe("POL-2024-00123");
     });
 
-    test("Update status through lifecycle", async () => {
+    test("Update status through lifecycle", async ({ request }) => {
+        const client = new ApiClient(request);
         let claim: any  = await client.patch(`/claims/${claimId}`, { status: "IN_REVIEW" });
         expect(claim.status).toBe("IN_REVIEW");
 
@@ -42,7 +40,8 @@ test.describe("Claims API – Happy Path", () => {
         expect(claim.payoutDate).toBe("2024-12-20");
     });
 
-    test("List claims", async () => {
+    test("List claims", async ({ request }) => {
+        const client = new ApiClient(request);
         const list: any  = await client.get("/claims");
         expect(list.data.length).toBeGreaterThan(0);
     });

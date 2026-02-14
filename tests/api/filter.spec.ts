@@ -3,11 +3,15 @@ import { test, expect } from "@playwright/test";
 import { ApiClient } from "../utils/apiClient";
 
 test.describe("Claims API – List / Filter Tests", () => {
-    let client: ApiClient;
     let claimIds: string[] = [];
 
-    test.beforeAll(async ({ request }) => {
-        client = new ApiClient(request);
+    test.beforeEach(async ({ request }) => {
+        const client = new ApiClient(request);
+
+        // Reset server data before each test
+        await client.post("/reset", {});
+
+        claimIds = [];
 
         // Seed some claims
         const claims = [
@@ -37,25 +41,29 @@ test.describe("Claims API – List / Filter Tests", () => {
         }
     });
 
-    test("GET /claims – filter by status", async () => {
+    test("GET /claims – filter by status", async ({ request }) => {
+        const client = new ApiClient(request);
         const list: any  = await client.get("/claims", { status: "OPEN" });
         expect(list.data.length).toBeGreaterThanOrEqual(3);
         expect(list.data.every((c: any) => c.status === "OPEN")).toBeTruthy();
     });
 
-    test("GET /claims – filter by policyNumber", async () => {
+    test("GET /claims – filter by policyNumber", async ({ request }) => {
+        const client = new ApiClient(request);
         const list: any  = await client.get("/claims", { policyNumber: "POL-2024-01001" });
         expect(list.data.length).toBe(1);
         expect(list.data[0].claimantName).toBe("Alice");
     });
 
-    test("GET /claims – filter by claimantName partial match", async () => {
+    test("GET /claims – filter by claimantName partial match", async ({ request }) => {
+        const client = new ApiClient(request);
         const list: any  = await client.get("/claims", { claimantName: "ar" });
         expect(list.data.length).toBe(1);
         expect(list.data[0].claimantName).toBe("Charlie");
     });
 
-    test("GET /claims – pagination (mocked via meta)", async () => {
+    test("GET /claims – pagination (mocked via meta)", async ({ request }) => {
+        const client = new ApiClient(request);
         const list: any  = await client.get("/claims");
         expect(list.meta.totalItems).toBeGreaterThanOrEqual(3);
         expect(list.meta.page).toBe(1);

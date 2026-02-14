@@ -22,6 +22,12 @@ interface Claim {
 
 let claims: Claim[] = [];
 
+// Reset endpoint for testing
+app.post("/reset", (req: Request, res: Response) => {
+    claims = [];
+    res.json({ message: "Data reset" });
+});
+
 // POST /claims
 app.post("/claims", (req: Request, res: Response) => {
     const { policyNumber, claimantName, damageDate, lossDescription, status } = req.body;
