@@ -1,5 +1,5 @@
 // tests/api/claims.spec.ts
-import { test, expect, APIRequestContext } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { ApiClient } from "../utils/apiClient";
 
 test.describe("Claims API – Happy Path", () => {
@@ -7,11 +7,11 @@ test.describe("Claims API – Happy Path", () => {
 
     test("Create claim", async ({ request }) => {
         const client = new ApiClient(request);
-        const claim: any  = await client.post("/claims", {
-            policyNumber: "POL-2024-00123",
-            claimantName: "Maria Müller",
+        const claim: any = await client.post("/claims", {
+            policyNumber: "POL-2024-08567",
+            claimantName: "Omer Somuncu",
             damageDate: "2024-11-15",
-            lossDescription: "Kitchen fire caused smoke and damage",
+            lossDescription: "Water damage in bathroom from pipe rupture",
         });
 
         expect(claim.id).toBeDefined();
@@ -21,28 +21,34 @@ test.describe("Claims API – Happy Path", () => {
 
     test("Retrieve claim", async ({ request }) => {
         const client = new ApiClient(request);
-        const claim: any  = await client.get(`/claims/${claimId}`);
+        const claim: any = await client.get(`/claims/${claimId}`);
         expect(claim.id).toBe(claimId);
-        expect(claim.policyNumber).toBe("POL-2024-00123");
+        expect(claim.policyNumber).toBe("POL-2024-08567");
     });
 
     test("Update status through lifecycle", async ({ request }) => {
         const client = new ApiClient(request);
-        let claim: any  = await client.patch(`/claims/${claimId}`, { status: "IN_REVIEW" });
+        let claim: any = await client.patch(`/claims/${claimId}`, { status: "IN_REVIEW" });
         expect(claim.status).toBe("IN_REVIEW");
 
-        claim = await client.patch(`/claims/${claimId}`, { status: "APPROVED", payoutAmount: 4500 });
+        claim = await client.patch(`/claims/${claimId}`, { status: "APPROVED", payoutAmount: 3200 });
         expect(claim.status).toBe("APPROVED");
-        expect(claim.payoutAmount).toBe(4500);
+        expect(claim.payoutAmount).toBe(3200);
 
-        claim = await client.patch(`/claims/${claimId}`, { status: "PAID", payoutAmount: 4500, payoutDate: "2024-12-20" });
+        claim = await client.patch(`/claims/${claimId}`, {
+            status: "PAID",
+            payoutAmount: 3200,
+            payoutDate: "2024-12-10"
+        });
         expect(claim.status).toBe("PAID");
-        expect(claim.payoutDate).toBe("2024-12-20");
+        expect(claim.payoutDate).toBe("2024-12-10");
     });
 
     test("List claims", async ({ request }) => {
         const client = new ApiClient(request);
-        const list: any  = await client.get("/claims");
+        const list: any = await client.get("/claims");
         expect(list.data.length).toBeGreaterThan(0);
     });
 });
+
+
