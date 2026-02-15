@@ -1,12 +1,47 @@
 # Claims API – Playwright API Test Suite
 
-This repository contains a **TypeScript + Playwright API test suite** for a mock **Claims API**, simulating an insurance claims system. It demonstrates advanced QA automation practices, including reusable clients, JSON schema validation, negative and edge-case testing, filtering, and CI/CD integration.
+A **TypeScript + Playwright API test suite** for a mock **Claims API**, simulating an insurance claims system. Demonstrates advanced QA automation practices, including reusable clients, negative testing, filtering, and CI/CD integration.
 
 ---
 
-## **Project Overview**
+## 🚀 Quick Start (5 minutes)
 
-The Claims API allows managing insurance claims, including creating, retrieving, updating, and filtering claims. Each claim has:
+### Step 1: Clone & Install
+```bash
+git clone https://github.com/omfasom/claims-api-project.git
+cd claims-api-project
+npm ci
+```
+
+### Step 2: Install Browsers (One-time)
+```bash
+npx playwright install chromium --with-deps
+```
+
+### Step 3: Run Tests
+```bash
+npm test
+```
+
+✅ **Done!** All 12 tests will run automatically.
+
+---
+
+## 📖 Common Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm test` | Run all tests (recommended) |
+| `npm run test:headed` | Run with visible browser |
+| `npm run test:debug` | Debug mode with inspector |
+| `npm run mock` | Start mock server only |
+| `npx playwright show-report` | View test results |
+
+---
+
+## 📋 Project Overview
+
+The Claims API manages insurance claims with the following attributes:
 
 - `id` – unique identifier
 - `policyNumber` – insurance policy reference
@@ -17,104 +52,39 @@ The Claims API allows managing insurance claims, including creating, retrieving,
 - `payoutAmount` – approved payout (if any)
 - `payoutDate` – date of payout (if any)
 
-The test suite is structured to cover:
-
-- **Happy path** – full lifecycle of a claim
-- **Negative / validation tests** – missing fields, invalid status transitions, not found errors
-- **List / filter tests** – filter by status, policy number, claimant name, and pagination
+The test suite covers:
+- ✅ **Happy path** – full lifecycle of a claim
+- ✅ **Negative / validation tests** – missing fields, invalid transitions, not found errors
+- ✅ **List / filter tests** – filter by status, policy number, claimant name, and pagination
 
 ---
 
-## **Project Structure**
+## 📁 Project Structure
 
+```
 claims-api-project/
 ├── openapi/
-│   └── claims-api.json           # OpenAPI specification
+│   └── claims-api.json              # OpenAPI specification
 ├── mock-server/
-│   └── server.ts                 # Local mock API server
+│   └── server.ts                    # Express mock API server
 ├── tests/
 │   ├── api/
-│   │   ├── claims.spec.ts        # Happy path tests
-│   │   ├── negative.spec.ts      # Validation / error tests
-│   │   └── filter.spec.ts        # List / filter tests
+│   │   ├── claims.spec.ts           # Happy path tests
+│   │   ├── negative.spec.ts         # Validation / error tests
+│   │   └── filter.spec.ts           # List / filter tests
 │   └── utils/
-│       ├── apiClient.ts          # Reusable API client
-│       └── schemaValidator.ts    # JSON schema validation helper
+│       ├── apiClient.ts             # Reusable HTTP client
+│       └── schemaValidator.ts       # JSON schema validation
 ├── .github/
-│   └── workflows/
-│       └── tests.yml             # CI workflow for GitHub Actions
-└── README.md                     # Project README
-
----
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 20+
-- npm
-
-### Installation
-
-```bash
-# Clone the repo
-git clone https://github.com/omfasom/claims-api-project.git
-cd claims-api-project
-
-# Install dependencies
-npm ci
-
-# Install Playwright browsers (one-time setup)
-npx playwright install chromium --with-deps
-```
-
-### Run Tests Locally
-
-The test suite automatically starts the mock server, waits for it to be ready, runs tests, and cleans up:
-
-```bash
-npm test
-```
-
-**Alternative ways to run tests:**
-
-```bash
-# Run in debug mode (step through tests in Playwright Inspector)
-npm run test:debug
-
-# Run with visible browser window
-npm run test:headed
-
-# Run mock server manually (for development)
-npm run mock
-```
-
-### View Test Results
-
-After tests complete, view the HTML report:
-
-```bash
-npx playwright show-report
-```
-
-### Run Tests Against Different Environments
-
-```bash
-# Against local mock server (default)
-npm test
-
-# Against staging
-API_BASE_URL=https://api.staging.example.com npx playwright test
-
-# Against production
-API_BASE_URL=https://api.example.com npx playwright test
+│   └── workflows/tests.yml          # GitHub Actions CI/CD
+├── QUICKSTART.md                    # Detailed step-by-step guide
+├── README.md                        # This file
+└── package.json                     # Dependencies
 ```
 
 ---
 
-## API Endpoints
-
-The mock Claims API provides the following endpoints:
+## 🔌 API Endpoints
 
 ### POST /claims
 Create a new claim. Requires: `policyNumber`, `claimantName`, `damageDate`, `lossDescription`
@@ -122,35 +92,28 @@ Create a new claim. Requires: `policyNumber`, `claimantName`, `damageDate`, `los
 ```bash
 curl -X POST http://localhost:3000/claims \
   -H "Content-Type: application/json" \
-  -d '{"policyNumber":"POL-2024-00123","claimantName":"John Doe","damageDate":"2024-02-14","lossDescription":"Water damage"}'
+  -d '{"policyNumber":"POL-2024-08567","claimantName":"Omer Somuncu","damageDate":"2024-02-14","lossDescription":"Water damage"}'
 ```
 
 ### GET /claims
-List all claims with optional filtering and pagination
+List all claims with optional filtering
 
 ```bash
-# Get all claims
 curl http://localhost:3000/claims
-
-# Filter by status
 curl "http://localhost:3000/claims?status=OPEN"
-
-# Filter by policy number
-curl "http://localhost:3000/claims?policyNumber=POL-2024-00123"
-
-# Filter by claimant name (partial match)
-curl "http://localhost:3000/claims?claimantName=John"
+curl "http://localhost:3000/claims?policyNumber=POL-2024-08567"
+curl "http://localhost:3000/claims?claimantName=Omer"
 ```
 
 ### GET /claims/:id
-Retrieve a specific claim by ID
+Retrieve a specific claim
 
 ```bash
 curl http://localhost:3000/claims/CLM-1707918000000
 ```
 
 ### PATCH /claims/:id
-Update a claim's status and/or payout information
+Update a claim's status and/or payout
 
 ```bash
 curl -X PATCH http://localhost:3000/claims/CLM-1707918000000 \
@@ -167,9 +130,9 @@ curl -X POST http://localhost:3000/reset
 
 ---
 
-## Test Results
+## ✅ Test Results
 
-### Current Status: ✅ All 12 Tests Passing
+**Status: All 12 Tests Passing ✓**
 
 | Category | Tests | Status |
 |----------|-------|--------|
@@ -178,45 +141,44 @@ curl -X POST http://localhost:3000/reset
 | Negative/Validation | 4 | ✅ Passing |
 | **Total** | **12** | **✅ Passing** |
 
-#### Happy Path Tests
-- ✓ Create claim
+### Test Breakdown
+
+**Happy Path Tests**
+- ✓ Create claim (Omer Somuncu)
 - ✓ Retrieve claim
 - ✓ Update status through lifecycle
 - ✓ List claims
 
-#### Filter Tests
+**Filter Tests**
 - ✓ Filter by status
-- ✓ Filter by policy number
-- ✓ Filter by claimant name (partial match)
+- ✓ Filter by policy number (Fatih Aydogan)
+- ✓ Filter by claimant name partial match (Burak Ozdemir)
 - ✓ Pagination metadata
 
-#### Negative/Validation Tests
-- ✓ Missing required field (`policyNumber`)
-- ✓ Invalid status transition (PAID → OPEN)
-- ✓ Claim not found (404)
-- ✓ Missing payout amount when transitioning to APPROVED
+**Negative/Validation Tests**
+- ✓ Missing required field (Ozan Dursun)
+- ✓ Invalid status transition (Ayse Yilmaz)
+- ✓ Claim not found error
+- ✓ Missing payout amount (Mehmet Kaya)
 
 ---
 
-## Architecture & Design
+## 🏗️ Architecture & Design
 
-### Test Structure
-
-**ApiClient** (`tests/utils/apiClient.ts`)
+### ApiClient (`tests/utils/apiClient.ts`)
 - Generic HTTP client wrapping Playwright's `APIRequestContext`
 - Supports POST, GET, PATCH methods
 - Type-safe with optional response typing
 - Exported `ApiError` interface for error response types
 
-**Mock Server** (`mock-server/server.ts`)
+### Mock Server (`mock-server/server.ts`)
 - Express.js server simulating a full claims API
 - In-memory data store (cleared on reset)
 - Validates required fields
 - Enforces state transitions
 - Provides filtering and pagination
 
-### Best Practices Implemented
-
+### Best Practices
 - ✅ **Isolated tests** – Each test gets its own `request` fixture
 - ✅ **Data isolation** – Tests call `POST /reset` before seeding data
 - ✅ **Type safety** – TypeScript with Playwright test typing
@@ -226,43 +188,109 @@ curl -X POST http://localhost:3000/reset
 
 ---
 
-## Contributing
+## 🔧 Advanced Usage
+
+### Run Tests in Debug Mode
+```bash
+npm run test:debug
+```
+Launches Playwright Inspector to step through tests.
+
+### Run Tests with Visible Browser
+```bash
+npm run test:headed
+```
+
+### Run Against Different Environments
+```bash
+# Staging
+API_BASE_URL=https://api.staging.example.com npm test
+
+# Production
+API_BASE_URL=https://api.example.com npm test
+```
+
+### Manual Server + Tests (separate terminals)
+**Terminal 1:**
+```bash
+npm run mock
+```
+
+**Terminal 2:**
+```bash
+npx playwright test
+```
+
+### View Test Report
+```bash
+npx playwright show-report
+```
+
+---
+
+## 🚨 Troubleshooting
+
+### Tests hang or timeout
+```bash
+# Check if port 3000 is in use
+lsof -i :3000
+
+# Kill the process (replace XXXX with PID)
+kill -9 XXXX
+
+# Run tests again
+npm test
+```
+
+### Browser installation fails
+```bash
+npx playwright install --with-deps
+npm test
+```
+
+### See detailed test output
+```bash
+npx playwright test --reporter=list
+```
+
+### Clear cached reports
+```bash
+rm -rf playwright-report/
+npm test
+```
+
+---
+
+## 📚 For More Details
+
+See **[QUICKSTART.md](./QUICKSTART.md)** for detailed step-by-step instructions with screenshots.
+
+---
+
+## 🤝 Contributing
 
 To add more tests:
 
 1. Create a new test file in `tests/api/`
 2. Use the `ApiClient` for HTTP requests
 3. Each test should receive `{ request }` fixture
-4. Use `client.post("/reset", {})` to reset data between tests if needed
+4. Call `client.post("/reset", {})` to reset data between tests if needed
+
+Example:
+```typescript
+test("My test", async ({ request }) => {
+    const client = new ApiClient(request);
+    const result = await client.post("/claims", { /* data */ });
+    expect(result).toBeDefined();
+});
+```
 
 ---
 
-## Troubleshooting
+## 📄 License
 
-### Tests hang or timeout
-```bash
-# Ensure port 3000 is not in use
-lsof -i :3000
-kill -9 <PID>
+ISC
 
-# Try running tests again
-npm test
-```
-
-### Browser installation issues
-```bash
-# Reinstall Playwright browsers
-npx playwright install --with-deps
-
-# Run tests
-npm test
-```
-
-### Clear test reports
-```bash
-rm -rf playwright-report/
-npm test
-```
 
 
 
