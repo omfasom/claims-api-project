@@ -29,14 +29,36 @@ npm test
 
 ## 📖 Common Commands
 
-| Command | Purpose |
-|---------|---------|
-| `npm test` | Run all tests (recommended) |
-| `npm run test:headed` | Run with more verbose output (API tests, no UI) |
-| `npm run test:debug` | Debug mode with inspector |
-| `npm run mock` | Start mock server only |
-| `npx playwright show-report` | View test results |
-| `npx playwright test --reporter=list` | Simple list output for API tests |
+### ✅ Option A: Automatic Mode (Recommended)
+```bash
+npm test
+```
+Starts server, runs all tests, stops server. One command does everything.
+
+### 🔧 Option B: Manual Server Mode (Advanced)
+```bash
+# Terminal 1: Start server (keep running)
+npm run mock
+
+# Terminal 2: Run tests (multiple times if needed)
+npx playwright test --reporter=list
+npx playwright test --reporter=list  # Can run again!
+```
+
+⚠️ **Important:** Don't mix Option A and Option B - pick one and stick with it!
+
+### 📊 All Available Commands
+
+| Command | Purpose | Requires Server? |
+|---------|---------|-----------------|
+| `npm test` | Run all tests (auto server) | No - automatic |
+| `npm run mock` | Start server manually | N/A |
+| `npx playwright test` | Run tests | Yes - manual startup |
+| `npx playwright test --reporter=list` | Tests with list output | Yes - manual startup |
+| `npm run test:debug` | Debug with inspector | Yes - manual startup |
+| `npm run test:headed` | Verbose output | Yes - manual startup |
+| `npx playwright show-report` | View test results | No |
+
 ---
 
 ## 📋 Project Overview
@@ -198,35 +220,42 @@ For better visibility into API test execution, use the `--reporter=list` flag in
 npx playwright test --reporter=list
 ```
 
-### Run Tests in Debug Mode
-```bash
-npm run test:debug
-```
-Launches Playwright Inspector to step through tests.
+### Option B: Manual Server Mode (For Development)
 
-### Run Tests with Visible Browser
-```bash
-npm run test:headed
-```
+Keep the mock server running in one terminal and run tests multiple times from another:
 
-### Run Against Different Environments
-```bash
-# Staging
-API_BASE_URL=https://api.staging.example.com npm test
-
-# Production
-API_BASE_URL=https://api.example.com npm test
-```
-
-### Manual Server + Tests (separate terminals)
-**Terminal 1:**
+**Terminal 1 (start once, keep running):**
 ```bash
 npm run mock
 ```
 
-**Terminal 2:**
+**Terminal 2 (run as many times as needed):**
 ```bash
+npx playwright test --reporter=list
+npm run test:debug
 npx playwright test
+```
+
+⚠️ **Important:** Don't run `npm test` in Terminal 2 while Terminal 1 is running - it will conflict!
+
+### Run Tests in Debug Mode
+```bash
+npm run test:debug
+```
+Requires: Mock server running (use Option B Terminal 1 first).
+
+Launches Playwright Inspector to step through tests.
+
+### Run Against Different Environments
+```bash
+# Staging (requires server running)
+API_BASE_URL=https://api.staging.example.com npx playwright test
+
+# Production (requires server running)
+API_BASE_URL=https://api.example.com npx playwright test
+
+# Or with automatic server:
+API_BASE_URL=https://api.staging.example.com npm test
 ```
 
 ### View Test Report
@@ -234,9 +263,25 @@ npx playwright test
 npx playwright show-report
 ```
 
+Opens detailed HTML report in browser with:
+- ✅ Pass/fail status
+- ⏱️ Test duration
+- 📊 Step-by-step execution
+- 🔴 Clear error messages
+
 ---
 
 ## 🚨 Troubleshooting
+
+### Issue: Tests fail when mixing Option A and Option B
+
+**Cause:** Running `npm test` and then `npx playwright test --reporter=list` fails because `npm test` stops the server after finishing.
+
+**Solution:** Choose ONE approach and stick with it:
+- **Option A (Simplest):** Just use `npm test` every time
+- **Option B (For repeated testing):** Start server with `npm run mock` and run tests in another terminal
+
+See [QUICKSTART.md](./QUICKSTART.md) for detailed troubleshooting.
 
 ### Tests hang or timeout
 ```bash
@@ -295,9 +340,6 @@ test("My test", async ({ request }) => {
 
 ---
 
-## 📄 License
-
-ISC
 
 
 

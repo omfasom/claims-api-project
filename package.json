@@ -9,8 +9,7 @@
     "test:headed": "start-server-and-test 'npm run mock' http://localhost:3000/health 'playwright test --headed'"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Ömer Somuncu",
   "description": "",
   "devDependencies": {
     "@playwright/test": "^1.58.2",
