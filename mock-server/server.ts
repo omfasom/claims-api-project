@@ -22,6 +22,11 @@ interface Claim {
 
 let claims: Claim[] = [];
 
+// Health check endpoint for start-server-and-test
+app.get("/health", (req: Request, res: Response) => {
+    res.status(200).json({ status: "ok" });
+});
+
 // Reset endpoint for testing
 app.post("/reset", (req: Request, res: Response) => {
     claims = [];

@@ -4,9 +4,9 @@
   "main": "index.js",
   "scripts": {
     "mock": "ts-node mock-server/server.ts",
-    "test": "start-server-and-test 'npm run mock' http://localhost:3000 'playwright test'",
-    "test:debug": "start-server-and-test 'npm run mock' http://localhost:3000 'playwright test --debug'",
-    "test:headed": "start-server-and-test 'npm run mock' http://localhost:3000 'playwright test --headed'"
+    "test": "start-server-and-test 'npm run mock' http://localhost:3000/health 'playwright test'",
+    "test:debug": "start-server-and-test 'npm run mock' http://localhost:3000/health 'playwright test --debug'",
+    "test:headed": "start-server-and-test 'npm run mock' http://localhost:3000/health 'playwright test --headed'"
   },
   "keywords": [],
   "author": "",
