@@ -49,7 +49,7 @@ This downloads the Chromium browser needed to run tests. You only need to do thi
 
 ## Step 4: Run the Tests
 
-### Option A: Automatic Mode (Recommended)
+### Option A: Automatic Mode (Recommended - Use This!)
 This automatically starts the mock server, runs tests, and stops the server:
 
 ```bash
@@ -63,44 +63,45 @@ npm test
 4. ✅ Server stops automatically
 5. ✅ Generates HTML report
 
+**Best for:** Most users - simple, reliable, one command
+
 ---
 
-### Option B: See Network Requests (Better for API Testing)
+### Option B: Manual Server Control (Advanced)
 
-For API tests, use the list reporter for clearer output:
+If you want to run the server separately and run tests multiple times:
 
-```bash
-npx playwright test --reporter=list
-```
-
-⚠️ **IMPORTANT:** This requires the mock server to be running first!
-
-**Terminal 1 - Start the server:**
+**Terminal 1 - Start the mock server (keep it running):**
 ```bash
 npm run mock
 ```
 
-**Terminal 2 - Run tests (in a new terminal):**
+You should see:
+```
+Mock server running at http://localhost:3000
+```
+
+**Terminal 2 - Run tests (in a NEW terminal, keep Terminal 1 running):**
 ```bash
 npx playwright test --reporter=list
 ```
 
-**Output shows:**
-- ✅ Test names and status
-- ⏱️ Duration of each test
-- 🔴 Clear failures with error details
+Or with debug mode:
+```bash
+npm run test:debug
+```
 
----
-
-### Option B-Alt: Run with Detailed Logging
-
-For more verbose output without a separate server:
-
+Or with verbose output:
 ```bash
 npm run test:headed
 ```
 
-This automatically starts the server, runs tests, and stops the server. Shows detailed network request/response logs.
+**Important:** 
+- ⚠️ Keep Terminal 1 running while tests are in Terminal 2
+- ✅ You can run tests multiple times without restarting the server
+- ❌ Do NOT run `npm test` while using Option B (it will conflict with your manual server)
+
+**Best for:** Development/debugging when you need to run tests many times
 
 ---
 
@@ -112,31 +113,7 @@ Step through tests one by one in Playwright Inspector:
 npm run test:debug
 ```
 
----
-
-### Option D: Manual Mode (Advanced)
-
-If you want to start the server separately:
-
-**Terminal 1 - Start the mock server:**
-```bash
-npm run mock
-```
-
-You should see:
-```
-> claims-api-project@1.0.0 mock
-> ts-node mock-server/server.ts
-
-Mock server running at http://localhost:3000
-```
-
-**Terminal 2 - Run tests in another terminal:**
-```bash
-npx playwright test
-```
-
----
+**Requires:** Mock server running (use Option B Terminal 1 first, then run this in Terminal 2)
 
 ## Step 5: View Test Results
 
@@ -156,18 +133,64 @@ This opens a browser window with detailed test results, including:
 
 ## Common Commands Reference
 
-| Command | Purpose | Server Auto-Start? |
-|---------|---------|-------------------|
-| `npm test` | Run all tests (recommended) | ✅ Yes |
-| `npm run test:headed` | Run with detailed logging | ✅ Yes |
-| `npm run test:debug` | Debug mode with inspector | ✅ Yes |
-| `npm run mock` | Start mock server only | N/A |
-| `npx playwright test --reporter=list` | Simple list output | ❌ **No** (start manually) |
-| `npx playwright show-report` | View last test report | N/A |
+### Option A (Automatic - Recommended)
+| Command | Purpose |
+|---------|---------|
+| `npm test` | Run all tests with auto server management |
+
+### Option B (Manual Server - Advanced)
+| Command | Purpose |
+|---------|---------|
+| `npm run mock` | Start server (keep running in Terminal 1) |
+| `npx playwright test` | Run tests (Terminal 2, requires server from Terminal 1) |
+| `npx playwright test --reporter=list` | Run tests with list output (Terminal 2, requires server) |
+| `npm run test:debug` | Debug mode with inspector (Terminal 2, requires server) |
+| `npm run test:headed` | Verbose output (Terminal 2, requires server) |
+
+### Utilities
+| Command | Purpose |
+|---------|---------|
+| `npx playwright show-report` | View last test report in browser |
+| `npx playwright install --with-deps` | Reinstall browsers if needed |
 
 ---
 
 ## Troubleshooting
+
+### Issue: Tests fail when running `npm test` then `npx playwright test --reporter=list`
+
+**Cause:** `npm test` automatically stops the server after it finishes. When you try to run tests again, the server is no longer running.
+
+**Solution:** Choose ONE approach:
+
+**Option 1 - Use automatic mode (simplest):**
+```bash
+npm test
+```
+Just use this one command every time. Don't mix it with manual commands.
+
+**Option 2 - Use manual server mode (for repeated testing):**
+
+Terminal 1 (start once, leave running):
+```bash
+npm run mock
+```
+
+Terminal 2 (run tests multiple times):
+```bash
+npx playwright test --reporter=list
+npx playwright test --reporter=list  # Can run again without restarting
+```
+
+**Option 3 - Restart server after npm test:**
+If you ran `npm test` and want to run more tests:
+```bash
+npm run mock
+# Then in another terminal:
+npx playwright test --reporter=list
+```
+
+---
 
 ### Issue: Tests won't start
 
@@ -205,12 +228,12 @@ If not installed, download from https://nodejs.org/
 Check that the mock server is responding:
 ```bash
 # In another terminal, while server is running:
-curl http://localhost:3000/claims
+curl http://localhost:3000/health
 ```
 
 Should return:
 ```json
-{"data":[],"meta":{"page":1,"pageSize":0,"totalItems":0,"totalPages":1}}
+{"status":"ok"}
 ```
 
 ---
