@@ -65,22 +65,7 @@ npm test
 
 ---
 
-### Option B: Run with Detailed Logging
-
-Since these are **API tests** (not UI tests), there's no browser window to display. However, `--headed` mode provides more detailed output:
-
-```bash
-npm run test:headed
-```
-
-**What it shows:**
-- Detailed network request/response logs
-- More verbose error messages
-- Better for debugging API issues
-
----
-
-### Option B-Alt: See Network Requests (Better for API Testing)
+### Option B: See Network Requests (Better for API Testing)
 
 For API tests, use the list reporter for clearer output:
 
@@ -88,10 +73,34 @@ For API tests, use the list reporter for clearer output:
 npx playwright test --reporter=list
 ```
 
-This shows:
+⚠️ **IMPORTANT:** This requires the mock server to be running first!
+
+**Terminal 1 - Start the server:**
+```bash
+npm run mock
+```
+
+**Terminal 2 - Run tests (in a new terminal):**
+```bash
+npx playwright test --reporter=list
+```
+
+**Output shows:**
 - ✅ Test names and status
 - ⏱️ Duration of each test
 - 🔴 Clear failures with error details
+
+---
+
+### Option B-Alt: Run with Detailed Logging
+
+For more verbose output without a separate server:
+
+```bash
+npm run test:headed
+```
+
+This automatically starts the server, runs tests, and stops the server. Shows detailed network request/response logs.
 
 ---
 
@@ -147,14 +156,14 @@ This opens a browser window with detailed test results, including:
 
 ## Common Commands Reference
 
-| Command | Purpose |
-|---------|---------|
-| `npm test` | Run all tests (recommended) |
-| `npm run test:headed` | Run tests with visible browser |
-| `npm run test:debug` | Debug mode with inspector |
-| `npm run mock` | Start mock server only |
-| `npx playwright show-report` | View last test report |
-| `npx playwright test --reporter=list` | Simple text output |
+| Command | Purpose | Server Auto-Start? |
+|---------|---------|-------------------|
+| `npm test` | Run all tests (recommended) | ✅ Yes |
+| `npm run test:headed` | Run with detailed logging | ✅ Yes |
+| `npm run test:debug` | Debug mode with inspector | ✅ Yes |
+| `npm run mock` | Start mock server only | N/A |
+| `npx playwright test --reporter=list` | Simple list output | ❌ **No** (start manually) |
+| `npx playwright show-report` | View last test report | N/A |
 
 ---
 
