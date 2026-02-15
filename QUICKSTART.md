@@ -104,17 +104,6 @@ npm run test:headed
 **Best for:** Development/debugging when you need to run tests many times
 
 ---
-
-### Option C: Debug Mode
-
-Step through tests one by one in Playwright Inspector:
-
-```bash
-npm run test:debug
-```
-
-**Requires:** Mock server running (use Option B Terminal 1 first, then run this in Terminal 2)
-
 ## Step 5: View Test Results
 
 After tests complete, open the HTML report:
