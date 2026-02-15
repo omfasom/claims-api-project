@@ -65,13 +65,33 @@ npm test
 
 ---
 
-### Option B: Run with Visible Browser
+### Option B: Run with Detailed Logging
 
-See the tests running in a real browser window:
+Since these are **API tests** (not UI tests), there's no browser window to display. However, `--headed` mode provides more detailed output:
 
 ```bash
 npm run test:headed
 ```
+
+**What it shows:**
+- Detailed network request/response logs
+- More verbose error messages
+- Better for debugging API issues
+
+---
+
+### Option B-Alt: See Network Requests (Better for API Testing)
+
+For API tests, use the list reporter for clearer output:
+
+```bash
+npx playwright test --reporter=list
+```
+
+This shows:
+- ✅ Test names and status
+- ⏱️ Duration of each test
+- 🔴 Clear failures with error details
 
 ---
 

@@ -32,11 +32,11 @@ npm test
 | Command | Purpose |
 |---------|---------|
 | `npm test` | Run all tests (recommended) |
-| `npm run test:headed` | Run with visible browser |
+| `npm run test:headed` | Run with more verbose output (API tests, no UI) |
 | `npm run test:debug` | Debug mode with inspector |
 | `npm run mock` | Start mock server only |
 | `npx playwright show-report` | View test results |
-
+| `npx playwright test --reporter=list` | Simple list output for API tests |
 ---
 
 ## 📋 Project Overview
@@ -189,6 +189,14 @@ curl -X POST http://localhost:3000/reset
 ---
 
 ## 🔧 Advanced Usage
+
+### Important: API Tests (Not UI Tests)
+These are **API tests**, not UI/E2E tests. They don't interact with browser UI elements. The `--headed` flag doesn't show a visual browser window because there's no UI to display - the tests make HTTP requests directly to the API.
+
+For better visibility into API test execution, use the `--reporter=list` flag instead:
+```bash
+npx playwright test --reporter=list
+```
 
 ### Run Tests in Debug Mode
 ```bash
