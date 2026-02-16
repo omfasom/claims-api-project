@@ -28,7 +28,7 @@ jobs:
         run: npm ci --prefer-offline --no-audit
 
       - name: Run Mock Server and Tests
-        run: npx start-server-and-test 'npm run mock' http://localhost:3000 'npm test'
+        run: npx start-server-and-test 'npm run mock' http://localhost:3000/health 'npm test'
 
       - name: Upload Playwright Report
         if: always()
